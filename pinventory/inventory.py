@@ -33,23 +33,36 @@ def locate_pi_devices():
     bytes of their MAC address.
     """
     establish_routes()
-    pi_ip_hostnames = ip_hostnames_matching_mac_prefix(RASPBERRY_PI_MAC_ADDRESS_PREFIX)
-    return pi_ip_hostnames
+    pi_ip_hostname_macs = ip_hostname_macs_matching_mac_prefix(RASPBERRY_PI_MAC_ADDRESS_PREFIX)
+    return pi_ip_hostname_macs
 
 
-def ip_hostnames_matching_mac_prefix(mac_prefix):
-    pi_ip_addresses = [ip for ip, mac in arp_ip_mac() if mac.startswith(mac_prefix)]
-    ip_hostnames = []
-    for pi_ip_address in pi_ip_addresses:
+def ip_hostname_macs_matching_mac_prefix(mac_prefix):
+    pi_ip_mac_addresses = [(ip, mac) for ip, mac in arp_ip_mac() if mac.startswith(mac_prefix)]
+    ip_hostname_macs = []
+    for pi_ip_address, pi_mac_address in pi_ip_mac_addresses:
         hostaddr, _, _, = socket.gethostbyaddr(pi_ip_address)
         hostname, _, _ = hostaddr.partition('.')
-        ip_hostnames.append((pi_ip_address, hostname))
-    return ip_hostnames
+        ip_hostname_macs.append((pi_ip_address, hostname, pi_mac_address))
+    return ip_hostname_macs
 
 
 def make_inventory():
-    pi_ip_hostnames = locate_pi_devices()
-    return dict(pi_ip_hostnames)
+    ip_hostname_macs = locate_pi_devices()
+    print(ip_hostname_macs)
+    all_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs)
+    raw_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs if hostname.startswith('raspberrypi'))
+    sol_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs if hostname.startswith('sol-'))
+    taken_raspberry_group = all_raspberry_group - raw_raspberry_group - sol_raspberry_group
+    hostvars = {ip: {'mac': mac} for ip, _, mac in ip_hostname_macs}
+    return {
+        'raw-raspberries': list(raw_raspberry_group),
+        'sol-raspberries': list(sol_raspberry_group),
+        'taken-rasperries': list(taken_raspberry_group),
+        '_meta': {
+            'hostvars': hostvars
+        }
+    }
 
 
 def collect_host_variables(hostname):
