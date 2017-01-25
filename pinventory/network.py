@@ -141,7 +141,7 @@ def arp_ip_mac():
 def establish_routes():
     """Establish routes to all devices on the local network using nmap.
 
-    This is useful so that subsequent calls to arp_ip_mac() locate all devices.
+    This is useful so that subsequent calls to arp_ip_mac() discover all devices.
     """
     network = local_network()
     nmap_command = 'nmap -sP {!s}'.format(network)
