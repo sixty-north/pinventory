@@ -54,7 +54,7 @@ def make_inventory():
     raw_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs if hostname.startswith('raspberrypi'))
     sol_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs if hostname.startswith('sol-'))
     taken_raspberry_group = all_raspberry_group - raw_raspberry_group - sol_raspberry_group
-    hostsvars = make_hostsvars()
+    hostsvars = make_hostsvars(ip_hostname_macs)
     return {
         'raw-raspberries': list(raw_raspberry_group),
         'sol-raspberries': list(sol_raspberry_group),
@@ -65,13 +65,13 @@ def make_inventory():
     }
 
 
-def make_hostsvars():
-    ip_hostname_macs = locate_pi_devices()
+def make_hostsvars(ip_hostname_macs):
     return {ip: {'mac': mac} for ip, _, mac in ip_hostname_macs}
 
 
 def collect_host_variables(hostname):
-    hostsvars = make_hostsvars()
+    ip_hostname_macs = locate_pi_devices()
+    hostsvars = make_hostsvars(ip_hostname_macs)
     try:
         hostvars = hostsvars[hostname]
     except KeyError:
