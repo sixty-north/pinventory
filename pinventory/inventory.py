@@ -70,21 +70,6 @@ def make_inventory():
     return reduce(lambda a, f: f(a), transformers, inventory)
 
 
-
-def sol_transform(inventory):
-    inventory = inventory.copy()
-    all_raspberry_hosts = set(inventory['raspberries']['hosts'])
-    raw_raspberry_hosts = set(host for host, hostvars in inventory['_meta']['hostvars'].items()
-                              if hostvars['hostname'].startswith('raspberrypi'))
-    sol_raspberry_hosts = set(host for host, hostvars in inventory['_meta']['hostvars'].items()
-                              if hostvars['hostname'].startswith('sol-'))
-    taken_raspberry_hosts = all_raspberry_hosts - raw_raspberry_hosts - sol_raspberry_hosts
-    inventory['raw-raspberries'] = {'hosts': sorted(raw_raspberry_hosts)}
-    inventory['sol-raspberries'] = {'hosts': sorted(sol_raspberry_hosts)}
-    inventory['taken-raspberries'] = {'hosts': sorted(taken_raspberry_hosts)}
-    return inventory
-
-
 def make_hostsvars(ip_hostname_macs):
     hostsvars = {ip: {'ip': ip,
                       'hostname': hostname,
