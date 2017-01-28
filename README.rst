@@ -55,6 +55,16 @@ To obtain the host variables for a particular host::
     }
 
 
+Invocation from Ansible
+=======================
+
+Pass ``pinventory`` executable using the ``-i`` inventory option, and
+Ansible will execute it as a *dynamic inventory*.  For example, assuming
+``pinventory`` is availabe on the PATH, to run an ad hoc Ansible command
+on all Raspberry Pi devices on the LAN, use::
+
+  $ ansible raspberries -i `which pinventory` <command>
+
 Customisation
 =============
 
