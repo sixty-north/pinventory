@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """Pinventory.
 
-A dynamic inventory provider for Ansible that finds fresh Raspberry Pi devices.
+An Ansible dynamic inventory provider that finds Raspberry Pi devices.
 
 Usage:
-    pinventory --list [--indent]
-    pinventory --host <hostname> [--indent]
+    pinventory --list [--pretty]
+    pinventory --host <hostname> [--pretty]
+    pinventory --help
+    pinventory --version
 
 Options:
     -h --help  Show this screen.
     --version  Show version.
-    --list     Output a JSON encoded dictionary of all groups.
-    --host     Output a JSON encoded dictionary of variables for the specified host.
-    --indent   Pretty-print JSON output
+    --list     Show a JSON object of all groups.
+    --host     Show a JSON object of variables for the specified host.
+    --pretty   Pretty-print JSON output.
 
 """
 import json
@@ -51,22 +53,37 @@ def ip_hostname_macs_matching_mac_prefix(mac_prefix):
 def make_inventory():
     ip_hostname_macs = locate_pi_devices()
     all_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs)
-    raw_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs if hostname.startswith('raspberrypi'))
-    sol_raspberry_group = set(ip for ip, hostname, mac in ip_hostname_macs if hostname.startswith('sol-'))
-    taken_raspberry_group = all_raspberry_group - raw_raspberry_group - sol_raspberry_group
     hostsvars = make_hostsvars(ip_hostname_macs)
-    return {
-        'raw-raspberries': list(raw_raspberry_group),
-        'sol-raspberries': list(sol_raspberry_group),
-        'taken-rasperries': list(taken_raspberry_group),
+    inventory = {
+        'raspberries': {
+            'hosts': sorted(all_raspberry_group),
+        },
         '_meta': {
             'hostvars': hostsvars
         }
     }
+    inventory = sol_transform(inventory)
+    return inventory
+
+
+def sol_transform(inventory):
+    inventory = inventory.copy()
+    all_raspberry_hosts = set(inventory['raspberries']['hosts'])
+    raw_raspberry_hosts = set(host for host, hostvars in inventory['_meta']['hostvars'].items()
+                              if hostvars['hostname'].startswith('raspberrypi'))
+    sol_raspberry_hosts = set(host for host, hostvars in inventory['_meta']['hostvars'].items()
+                              if hostvars['hostname'].startswith('sol-'))
+    taken_raspberry_hosts = all_raspberry_hosts - raw_raspberry_hosts - sol_raspberry_hosts
+    inventory['raw-raspberries'] = {'hosts': sorted(raw_raspberry_hosts)}
+    inventory['sol-raspberries'] = {'hosts': sorted(sol_raspberry_hosts)}
+    inventory['taken-raspberries'] = {'hosts': sorted(taken_raspberry_hosts)}
+    return inventory
 
 
 def make_hostsvars(ip_hostname_macs):
-    return {ip: {'mac': mac} for ip, _, mac in ip_hostname_macs}
+    return {ip: {'ip': ip,
+                 'hostname': hostname,
+                 'mac': mac} for ip, hostname, mac in ip_hostname_macs}
 
 
 def collect_host_variables(hostname):
@@ -93,7 +110,7 @@ def print_host_variables(hostname, indent=None):
 
 def main(argv=None):
     arguments = docopt(__doc__, argv, version=__version__)
-    indent = DEFAULT_JSON_INDENTATION if arguments['--indent'] else None
+    indent = DEFAULT_JSON_INDENTATION if arguments['--pretty'] else None
     if arguments['--list']:
         print_inventory(indent=indent)
     elif arguments['--host']:
@@ -101,3 +118,5 @@ def main(argv=None):
 
 if __name__ == '__main__':
     sys.exit(main())
+
+
