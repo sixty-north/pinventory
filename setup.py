@@ -12,7 +12,6 @@ if sys.version_info < MINIMUM_VERSION:
             '.'.join(map(str, sys.version_info))))
     sys.exit(os.EX_CONFIG)
 
-import importlib
 import io
 import re
 
@@ -54,7 +53,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='',
+    url='https://github.com/sixty-north/pinventory',
 
     # Author details
     author='Sixty North AS',
@@ -78,7 +77,7 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.,
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 
     # You can just specify the packages manually here if your project is
