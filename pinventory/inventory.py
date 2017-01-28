@@ -65,11 +65,9 @@ def make_inventory():
         }
     }
 
-    group = 'pinventory.inventory.transform'
+    group = 'pinventory.transform.inventory'
     transformers = (entry_point.load() for entry_point in pkg_resources.iter_entry_points(group=group))
-    inventory = reduce(lambda a, f: f(a), transformers, inventory)
-
-    return inventory
+    return reduce(lambda a, f: f(a), transformers, inventory)
 
 
 
@@ -88,9 +86,13 @@ def sol_transform(inventory):
 
 
 def make_hostsvars(ip_hostname_macs):
-    return {ip: {'ip': ip,
-                 'hostname': hostname,
-                 'mac': mac} for ip, hostname, mac in ip_hostname_macs}
+    hostsvars = {ip: {'ip': ip,
+                      'hostname': hostname,
+                      'mac': mac} for ip, hostname, mac in ip_hostname_macs}
+
+    group = 'pinventory.transform.hostsvars'
+    transformers = (entry_point.load() for entry_point in pkg_resources.iter_entry_points(group=group))
+    return reduce(lambda a, f: f(a), transformers, hostsvars)
 
 
 def collect_host_variables(hostname):

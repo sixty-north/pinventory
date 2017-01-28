@@ -123,8 +123,11 @@ setup(
         'console_scripts': [
             'pinventory=pinventory.inventory:main',
         ],
-        'pinventory.inventory.transform': [
-            'transform=pinventory.transform:transform'
+        'pinventory.transform.inventory': [
+            'transform=pinventory.transform.inventory:transform'
+        ],
+        'pinventory.transform.hostsvars': [
+            'transform=pinventory.transform.hostsvars:transform'
         ]
     },
 )
