@@ -20,7 +20,9 @@ Options:
 import json
 import socket
 import sys
+from functools import reduce
 
+import pkg_resources
 from docopt import docopt
 
 from pinventory import __version__
@@ -62,8 +64,13 @@ def make_inventory():
             'hostvars': hostsvars
         }
     }
-    inventory = sol_transform(inventory)
+
+    group = 'pinventory.inventory.transform'
+    transformers = (entry_point.load() for entry_point in pkg_resources.iter_entry_points(group=group))
+    inventory = reduce(lambda a, f: f(a), transformers, inventory)
+
     return inventory
+
 
 
 def sol_transform(inventory):

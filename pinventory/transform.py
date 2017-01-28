@@ -9,6 +9,5 @@ def transform(inventory):
     Returns:
         A dictionary containing an Ansible inventory.
     """
+    # Return a modified inventory.
     return inventory
-
-
