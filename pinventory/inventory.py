@@ -22,11 +22,12 @@ import socket
 import sys
 from functools import reduce
 
+import paramiko
 import pkg_resources
 from docopt import docopt
 
 from pinventory import __version__
-from pinventory.network import arp_ip_mac, establish_routes
+from pinventory.network import arp_ip_mac, establish_routes, fetch_hostname
 
 RASPBERRY_PI_MAC_ADDRESS_PREFIX = 'b8:27:eb:'
 DEFAULT_JSON_INDENTATION = 4
@@ -46,8 +47,12 @@ def ip_hostname_macs_matching_mac_prefix(mac_prefix):
     pi_ip_mac_addresses = [(ip, mac) for ip, mac in arp_ip_mac() if mac.startswith(mac_prefix)]
     ip_hostname_macs = []
     for pi_ip_address, pi_mac_address in pi_ip_mac_addresses:
-        hostaddr, _, _, = socket.gethostbyaddr(pi_ip_address)
-        hostname, _, _ = hostaddr.partition('.')
+        try:
+            hostaddr, _, _, = socket.gethostbyaddr(pi_ip_address)
+        except socket.herror:
+            hostname = fetch_hostname(pi_ip_address, 22, 'pi', 'raspberry')
+        else:
+            hostname, _, _ = hostaddr.partition('.')
         ip_hostname_macs.append((pi_ip_address, hostname, pi_mac_address))
     return ip_hostname_macs
 

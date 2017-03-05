@@ -3,6 +3,7 @@ import socket
 import ipaddress
 import subprocess
 
+import paramiko
 
 _local_networks = ("127.", "0:0:0:0:0:0:0:1")
 
@@ -146,3 +147,29 @@ def establish_routes():
     network = local_network()
     nmap_command = 'nmap -sP {!s}'.format(network)
     subprocess.check_call(nmap_command, shell=True, stdout=subprocess.DEVNULL)
+
+
+def fetch_hostname(ip_address, port, username, password):
+    """Retrive the hostname by running the hostname command over SSH.
+
+    Returns:
+        The unqualified hostname or an empty string if it could not be determined.
+
+    Raises:
+        paramiko.BadHostKeyException – if the server’s host key could not be verified
+        paramiko.AuthenticationException – if authentication failed
+        paramiko.SSHException – if there was any other error connecting or establishing an SSH session
+        socket.error – if a socket error occurred while connecting
+    """
+    try:
+        with paramiko.SSHClient() as client:
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(str(ip_address), port, username, password)
+            stdin, stdout, stderr = client.exec_command('hostname')
+            line = stdout.readline().strip()
+            return line
+    except (paramiko.BadHostKeyException,
+            paramiko.AuthenticationException,
+            paramiko.SSHException,
+            socket.error):
+        return ''

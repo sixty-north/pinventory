@@ -89,7 +89,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'docopt'
+        'docopt',
+        'paramiko'
     ],
 
     # The order of these is important!
