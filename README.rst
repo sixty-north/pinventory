@@ -63,7 +63,16 @@ Ansible will execute it as a *dynamic inventory*.  For example, assuming
 ``pinventory`` is available on the PATH, to run an ad hoc Ansible command
 on all Raspberry Pi devices on the LAN, use::
 
-  $ ansible raspberries -i `which pinventory` <command>
+  $ ansible raspberries -i `which pinventory` -a <command>
+
+For example, to get the uptime of the Raspberry Pi devices, use::
+
+  $ ansible raspberries -i `which pinventory` -a uptime
+  10.0.0.186 | SUCCESS | rc=0 >>
+   18:51:14 up  1:03,  1 user,  load average: 0.06, 0.02, 0.00
+
+  10.0.0.171 | SUCCESS | rc=0 >>
+   18:51:15 up  1:03,  1 user,  load average: 0.03, 0.02, 0.00
 
 Customisation
 =============
