@@ -22,15 +22,25 @@ import socket
 import sys
 from functools import reduce
 
-import paramiko
 import pkg_resources
 from docopt import docopt
 
 from pinventory import __version__
-from pinventory.network import arp_ip_mac, establish_routes, fetch_hostname
+from pinventory.network import arp_ip_mac, establish_routes, fetch_hostname, canonicalise_mac
 
 RASPBERRY_PI_MAC_ADDRESS_PREFIX = 'b8:27:eb:'
 DEFAULT_JSON_INDENTATION = 4
+
+
+def mac_prefixes():
+    """Return an iterable container of MAC address prefixes.
+    """
+    mac_address_prefixes = {canonicalise_mac(RASPBERRY_PI_MAC_ADDRESS_PREFIX)}
+    
+    group = 'pinventory.transform.macprefixes'
+    transformers = (entry_point.load() for entry_point in pkg_resources.iter_entry_points(group=group))
+    return reduce(lambda a, f: f(a), transformers, mac_address_prefixes)
+
 
 def locate_pi_devices():
     """Find all Raspberry Pi devices on the local network.
@@ -39,12 +49,16 @@ def locate_pi_devices():
     bytes of their MAC address.
     """
     establish_routes()
-    pi_ip_hostname_macs = ip_hostname_macs_matching_mac_prefix(RASPBERRY_PI_MAC_ADDRESS_PREFIX)
+    pi_ip_hostname_macs = set(
+        ip_hostname_mac
+        for mac_prefix in mac_prefixes()
+        for ip_hostname_mac in ip_hostname_macs_matching_mac_prefix(mac_prefix)
+    )
     return pi_ip_hostname_macs
 
 
 def ip_hostname_macs_matching_mac_prefix(mac_prefix):
-    pi_ip_mac_addresses = [(ip, mac) for ip, mac in arp_ip_mac() if mac.startswith(mac_prefix)]
+    pi_ip_mac_addresses = [(ip, canonicalise_mac(mac)) for ip, mac in arp_ip_mac() if canonicalise_mac(mac).startswith(canonicalise_mac(mac_prefix))]
     ip_hostname_macs = []
     for pi_ip_address, pi_mac_address in pi_ip_mac_addresses:
         try:
@@ -117,5 +131,6 @@ def main(argv=None):
 
 if __name__ == '__main__':
     sys.exit(main())
+
 
 

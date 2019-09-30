@@ -128,6 +128,9 @@ setup(
         ],
         'pinventory.transform.hostsvars': [
             'transform=pinventory.transform.hostsvars:transform'
+        ],
+        'pinventory.transform.macprefixes': [
+            'transform=pinventory.transform.macprefixes:transform'
         ]
     },
 )

@@ -150,7 +150,7 @@ def establish_routes():
 
 
 def fetch_hostname(ip_address, port, username, password):
-    """Retrive the hostname by running the hostname command over SSH.
+    """Retrieve the hostname by running the hostname command over SSH.
 
     Returns:
         The unqualified hostname or an empty string if it could not be determined.
@@ -173,3 +173,18 @@ def fetch_hostname(ip_address, port, username, password):
             paramiko.SSHException,
             socket.error):
         return ''
+
+
+def canonicalise_mac(mac_address):
+    """Canoncialise a MAC address to have two-digit bytes.
+
+    Args:
+        A MAC address or MAC address prefix string consisting of colon-separated
+        hexadecimal values.
+
+    Returns:
+        A MAC address or MAC address prefix string with two-digit colon-separated
+        hexadecimal values.
+    """
+    parts = mac_address.split(":")
+    return ":".join("{:02x}".format(int(part, 16)) if part else part for part in parts)
